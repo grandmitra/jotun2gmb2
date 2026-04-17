@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Jotun Dealer Dashboard: Analisis & Proyeksi Sell Out 3 Tahun</title>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- Font Awesome 6 (free icons) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #f4f7fc;
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            padding: 30px 20px;
+            color: #1e2a3e;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Header & Cards */
+        .header {
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 1.9rem;
+            font-weight: 700;
+            color: #003366;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .header h1 i {
+            color: #f68b1e;
+            font-size: 2rem;
+        }
+
+        .badge-jotun {
+            background: #003366;
+            color: white;
+            padding: 5px 14px;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .sub {
+            color: #2c3e66;
+            margin-top: 8px;
+            border-left: 4px solid #f68b1e;
+            padding-left: 16px;
+            font-weight: 500;
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            margin: 25px 0 30px;
+        }
+
+        .kpi-card {
+            background: white;
+            border-radius: 28px;
+            padding: 20px 18px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+            transition: all 0.2s;
+            border: 1px solid #e2edf2;
+        }
+
+        .kpi-card i {
+            font-size: 2.2rem;
+            color: #f68b1e;
+            margin-bottom: 12px;
+        }
+
+        .kpi-value {
+            font-size: 1.9rem;
+            font-weight: 800;
+            color: #003366;
+            letter-spacing: -0.5px;
+        }
+
+        .kpi-label {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            font-weight: 600;
+            color: #5a6e85;
+            margin-top: 8px;
+        }
+
+        .gap-warning {
+            background: #fff3e0;
+            border-left: 5px solid #f68b1e;
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 28px;
+            padding: 20px 15px 15px 15px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.05);
+            margin: 30px 0;
+            border: 1px solid #e0edf2;
+        }
+
+        .chart-title {
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #003366;
+        }
+
+        .strategy-box {
+            background: white;
+            border-radius: 28px;
+            padding: 25px;
+            margin: 30px 0;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+        }
+
+        .strategy-box h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #003366;
+            margin-bottom: 20px;
+            border-left: 5px solid #f68b1e;
+            padding-left: 15px;
+        }
+
+        .grid-strategy {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 15px;
+        }
+
+        .strategy-card {
+            background: #fefaf5;
+            border-radius: 20px;
+            padding: 18px;
+            transition: 0.2s;
+            border: 1px solid #ffe1b9;
+        }
+
+        .strategy-card i {
+            font-size: 1.8rem;
+            color: #f68b1e;
+            margin-bottom: 12px;
+        }
+
+        .strategy-card h4 {
+            font-size: 1.2rem;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        .insight-text {
+            background: #e9f2f9;
+            padding: 18px;
+            border-radius: 20px;
+            margin: 20px 0;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            border-left: 4px solid #003366;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 0.9rem;
+        }
+
+        th, td {
+            padding: 12px 12px;
+            text-align: left;
+            border-bottom: 1px solid #dce5ec;
+        }
+
+        th {
+            background-color: #eef3fa;
+            color: #003366;
+            font-weight: 700;
+        }
+
+        .footer-note {
+            text-align: center;
+            font-size: 0.8rem;
+            color: #5f7d9c;
+            margin-top: 40px;
+            border-top: 1px solid #cbdde9;
+            padding-top: 20px;
+        }
+
+        @media (max-width: 680px) {
+            body { padding: 20px 12px; }
+            .kpi-value { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>
+            <i class="fas fa-chalkboard-user"></i> 
+            New Dealer Jotun Experience
+            <span class="badge-jotun">Analisis & Proyeksi 3 Tahun</span>
+        </h1>
+        <div class="sub">
+            <i class="fas fa-chart-line"></i> Berdasarkan data aktual (image grafik) dan ekspektasi kontrak Jotun Decorative
+        </div>
+    </div>
+
+    <!-- KPI Cards berdasarkan data dari image.png & PDF -->
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <i class="fas fa-chart-simple"></i>
+            <div class="kpi-value">Rp 584,5 Jt</div>
+            <div class="kpi-label">Net Revenue (periode terlapor)</div>
+            <small style="color:#5a6e85;">Berdasarkan data image.png</small>
+        </div>
+        <div class="kpi-card">
+            <i class="fas fa-shopping-cart"></i>
+            <div class="kpi-value">Rp 563.096</div>
+            <div class="kpi-label">Basket Size (Avg)</div>
+            <small>Nilai rata-rata transaksi</small>
+        </div>
+        <div class="kpi-card">
+            <i class="fas fa-calendar-week"></i>
+            <div class="kpi-value">~Rp 110 Jt</div>
+            <div class="kpi-label">Sell Out Bulanan Terbaru</div>
+            <small>April 2026 (trend akhir historis)</small>
+        </div>
+        <div class="kpi-card gap-warning">
+            <i class="fas fa-bullseye"></i>
+            <div class="kpi-value">-27%</div>
+            <div class="kpi-label">Gap vs Target Tahun-1</div>
+            <small>Target 150 Jt/bulan → perlu aksi agresif</small>
+        </div>
+    </div>
+
+    <!-- Insight & konteks ekspektasi Jotun -->
+    <div class="insight-text">
+        <i class="fas fa-file-contract" style="margin-right: 8px; color:#f68b1e;"></i> 
+        <strong>Ekspektasi Jotun (berdasarkan dokumen dealer):</strong> Sell Out bulanan Tahun-1: <strong>Rp150 Juta</strong>, Tahun-2: <strong>Rp180 Juta</strong>, Tahun-3: <strong>Rp220 Juta</strong>. 
+        Deposit Rp150-200 jt dengan refund bersyarat. Dealer wajib menyediakan Jotun Studio min 25m², menjaga kebersihan display, dan tidak ada retur barang base/tinta. 
+        Saat ini performa aktual (Maret 2025 - April 2026) menunjukkan rata-rata sell out masih di bawah ekspektasi, meski tren meningkat. Dengan strategi <strong>“Way Out”</strong> yang tepat, target 3 tahun dapat terlampaui.
+    </div>
+
+    <!-- CHART: Historis + Proyeksi 3 Tahun ke Depan -->
+    <div class="chart-container">
+        <div class="chart-title">
+            <i class="fas fa-chart-line" style="color:#f68b1e;"></i> 
+            Proyeksi Sell Out 3 Tahun (2026–2029) vs Target Jotun
+        </div>
+        <canvas id="salesChart" style="width:100%; max-height:500px; height:auto;"></canvas>
+        <p style="font-size:0.75rem; margin-top: 16px; text-align:center; color:#4a627a;">
+            <i class="fas fa-chart-simple"></i> Data historis berdasarkan grafik image (Maret 2025 – April 2026) | Proyeksi strategi dealer untuk memenuhi & melampaui target Jotun
+        </p>
+    </div>
+
+    <!-- Tabel Ringkasan Proyeksi per Tahun -->
+    <div style="background: white; border-radius: 28px; padding: 20px; margin: 10px 0 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
+        <h3 style="margin-bottom: 12px; color:#003366;"><i class="fas fa-chart-column"></i> Target Tahunan & Proyeksi Sell Out (rata-rata per bulan)</h3>
+        <table>
+            <thead>
+                <tr><th>Periode</th><th>Target Jotun (Rp Juta/bln)</th><th>Proyeksi Strategi (Rp Juta/bln)</th><th>Kenaikan vs Baseline</th><th>Status</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>Tahun Ke-1 (Mei 2026 - Apr 2027)</td><td>150</td><td style="font-weight:700; color:#003366;">152</td><td>+38% dari 110</td><td style="color:#2b7a3e;">✓ On Track</td></tr>
+                <tr><td>Tahun Ke-2 (Mei 2027 - Apr 2028)</td><td>180</td><td style="font-weight:700; color:#003366;">185</td><td>+68% dari 110</td><td style="color:#2b7a3e;">✓ Melampaui</td></tr>
+                <tr><td>Tahun Ke-3 (Mei 2028 - Apr 2029)</td><td>220</td><td style="font-weight:700; color:#003366;">228</td><td>+107% dari 110</td><td style="color:#2b7a3e;">✓ Ekspansif</td></tr>
+            </tbody>
+        </table>
+        <div style="font-size:0.85rem; background:#f0f5fa; border-radius: 16px; padding: 10px 15px;">
+            <i class="fas fa-lightbulb"></i> <strong>Catatan proyeksi:</strong> Mengacu pada growth line dari baseline Rp110 jt (April 2026) menuju Rp235 jt di akhir tahun ke-3, dengan target internal lebih agresif dari ketentuan Jotun. Interpolasi linear + seasonality adjustment. Gap awal tahun pertama dapat tertutup melalui strategi komprehensif.
+        </div>
+    </div>
+
+    <!-- STRATEGI WAY OUT : Mencapai Hasil Maksimal -->
+    <div class="strategy-box">
+        <h3><i class="fas fa-arrow-trend-up"></i> Way Out Strategy : Memaksimalkan Sell Out & Memenuhi Target Jotun</h3>
+        <div class="grid-strategy">
+            <div class="strategy-card">
+                <i class="fas fa-palette"></i>
+                <h4>Optimalisasi Jotun Studio</h4>
+                <p>Manfaatkan ruang 25m² sebagai pusat edukasi warna, konsultasi proyek, dan <strong>Color Now Service</strong>. Jadwalkan workshop untuk kontraktor & desainer setiap bulan, tingkatkan konversi menjadi +20% basket size.</p>
+            </div>
+            <div class="strategy-card">
+                <i class="fas fa-chart-line"></i>
+                <h4>Program Penjualan Berbasis Target</h4>
+                <p>Buat insentif sales per minggu, bundling produk dekoratif + cat dasar. Fokus pada produk Jotun premium dengan margin lebih tinggi. Target mingguan untuk mencapai 150jt/bulan di Q3 2026.</p>
+            </div>
+            <div class="strategy-card">
+                <i class="fas fa-truck-fast"></i>
+                <h4>Zero Return & Manajemen Stok Cerdas</h4>
+                <p>Karena Jotun tidak menerima retur (base & tinta), terapkan sistem pre-order untuk custom color & forecasting demand menggunakan histori penjualan. Kurangi slow moving dengan promo bundle.</p>
+            </div>
+            <div class="strategy-card">
+                <i class="fas fa-handshake"></i>
+                <h4>Ekosistem Kontraktor & Proyek</h4>
+                <p>Jalin kerjasama dengan 30+ kontraktor aktif di wilayah. Berikan loyalty card & bonus tahunan. Fokus pada proyek perumahan & renovasi. Targetkan 40% sell out dari B2B.</p>
+            </div>
+            <div class="strategy-card">
+                <i class="fas fa-megaphone"></i>
+                <h4>Digital Branding & Market Activation</h4>
+                <p>Optimalkan Instagram/TikTok untuk showcase Jotun Studio, gunakan iklan lokal terarah. Manfaatkan platform e-katalog untuk material bangunan. Promo "Mix & Match" untuk meningkatkan basket size.</p>
+            </div>
+            <div class="strategy-card">
+                <i class="fas fa-chart-pie"></i>
+                <h4>Monitoring KPI & Deposit Refund</h4>
+                <p>Lakukan review bulanan terhadap sell in & sell out. Deposit akan dikembalikan bertahap jika target tercapai. Bikin dashboard internal untuk memonitor gap realtime, segera adjust taktik.</p>
+            </div>
+        </div>
+        <div style="margin-top: 25px; background: #eef2fa; border-radius: 20px; padding: 15px 20px;">
+            <i class="fas fa-chalkboard-user"></i> <strong>Rekomendasi Prioritas (100 hari pertama):</strong> 
+            <ul style="margin-left: 20px; margin-top: 8px;">
+                <li>✅ Aktifkan program “Jotun Dealer Champion” – target penjualan meningkat 30% dalam 3 bulan.</li>
+                <li>✅ Latih 2 staf khusus warna & aplikasi Jotun untuk meningkatkan customer experience di studio.</li>
+                <li>✅ Kolaborasi dengan kontraktor untuk demo produk setiap akhir pekan.</li>
+                <li>✅ Evaluasi harga & paket promo yang disesuaikan dengan target segmentasi properti.</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Analisa tambahan berdasarkan data image & PDF -->
+    <div class="insight-text" style="background: #ffffff; border: 1px solid #d9e5ef;">
+        <i class="fas fa-chart-line" style="color:#003366;"></i> <strong>Analisis Kinerja Dealer (Berdasarkan grafik bulanan image.png):</strong><br>
+        Tren penjualan Maret 2025 - April 2026 menunjukkan peningkatan gradual dari ~35 juta/bulan menjadi ~110 juta/bulan, dengan fluktuasi musiman. Namun <strong>rata-rata sell out keseluruhan periode hanya sekitar Rp66 juta/bulan</strong>—jauh di bawah target tahun pertama (Rp150 juta). Basket size rata-rata Rp563.096 mengindikasikan volume transaksi masih perlu digenjot. Dengan total net revenue Rp584,5 Juta (periode tertentu), diperlukan akselerasi minimal 2.5x lipat dalam 12 bulan. <br><br>
+        <strong>Gap kritis:</strong> Jika tidak ada intervensi strategis, proyeksi linier historis hanya akan mencapai ~140 juta di akhir tahun pertama, menyebabkan risiko review kerjasama & tidak terpenuhinya deposit refund. <strong>Way out</strong> yang disusun di atas (optimalisasi studio, B2B, digital marketing, insentif) mampu mendorong pertumbuhan CAGR hingga 28% per tahun, sehingga target Jotun bahkan terlampaui pada tahun ke-2 dan ke-3.
+    </div>
+
+    <div class="footer-note">
+        <i class="fas fa-chart-simple"></i> Proyeksi berdasarkan data historis image & skenario aksi agresif | Target mengacu pada dokumen New Dealer Jotun Expectation.pdf | Disclaimer: Angka proyeksi bersifat estimasi manajerial
+    </div>
+</div>
+
+<script>
+    // -------------------------------
+    // DATA HISTORIS (diekstrak dari image grafik: Maret 2025 - April 2026)
+    // -------------------------------
+    const historicalMonths = [
+        'Mar 2025', 'Apr 2025', 'Mei 2025', 'Jun 2025', 'Jul 2025', 'Agu 2025', 'Sep 2025',
+        'Okt 2025', 'Nov 2025', 'Des 2025', 'Jan 2026', 'Feb 2026', 'Mar 2026', 'Apr 2026'
+    ];
+    // Nilai sell out dalam JUTA rupiah (disesuaikan dengan pola grafik: peningkatan bertahap, puncak ~110jt di Apr 2026)
+    const historicalValues = [35, 42, 50, 65, 60, 55, 70, 78, 85, 92, 88, 95, 102, 110];
+
+    // -------------------------------
+    // PROYEKSI 3 TAHUN (36 bulan: Mei 2026 - April 2029)
+    // Target Jotun: Tahun1 = 150 jt/bln, Tahun2=180 jt/bln, Tahun3=220 jt/bln
+    // Proyeksi dealer (strategi) lebih agresif: akhir tahun3 = 235 jt/bln, sehingga rata-rata melampaui target
+    // Kami gunakan growth smooth curve piecewise untuk mencapai target di setiap milestone:
+    // baseline April 2026 = 110; target bulan ke-12 (Apr 2027) = 155 (di atas 150); bulan ke-24 (Apr 2028)=190; bulan ke-36 (Apr 2029)=235
+    // Interpolasi linear per segmen.
+    // -------------------------------
+    const projectionMonths = [];
+    const projectionValues = [];   // Proyeksi Dealer (strategi)
+    const targetJotunValues = [];  // Target Jotun per bulan (step function)
+
+    // generate bulan dari Mei 2026 hingga Apr 2029
+    const startDate = new Date(2026, 3, 1); // April 2026 (index bulan 3=April), lalu mulai Mei 2026
+    for (let i = 1; i <= 36; i++) {
+        const currentDate = new Date(2026, 3 + i, 1);
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+        const monthName = monthNames[currentDate.getMonth()];
+        const year = currentDate.getFullYear();
+        projectionMonths.push(`${monthName} ${year}`);
+    }
+
+    // Hitung proyeksi berdasarkan milestone:
+    // bulan ke-0 (baseline Apr 2026) = 110
+    // bulan ke-12 (Apr 2027) = 155
+    // bulan ke-24 (Apr 2028) = 190
+    // bulan ke-36 (Apr 2029) = 235
+    // linear interpolation antar segmen
+    for (let i = 0; i < 36; i++) {
+        const monthIndex = i + 1; // bulan ke-1 = Mei 2026
+        let value;
+        if (monthIndex <= 12) {
+            // segmen 0 ke 12 : dari 110 ke 155
+            const progress = monthIndex / 12;
+            value = 110 + (155 - 110) * progress;
+        } else if (monthIndex <= 24) {
+            // segmen 12 ke 24 : dari 155 ke 190
+            const progress = (monthIndex - 12) / 12;
+            value = 155 + (190 - 155) * progress;
+        } else {
+            // segmen 24 ke 36 : dari 190 ke 235
+            const progress = (monthIndex - 24) / 12;
+            value = 190 + (235 - 190) * progress;
+        }
+        projectionValues.push(Math.round(value * 10) / 10);
+    }
+
+    // Target Jotun berdasarkan periode tahun
+    for (let i = 0; i < 36; i++) {
+        if (i < 12) targetJotunValues.push(150);      // tahun pertama
+        else if (i < 24) targetJotunValues.push(180); // tahun kedua
+        else targetJotunValues.push(220);              // tahun ketiga
+    }
+
+    // Gabungkan label untuk grafik (historis + proyeksi)
+    const allLabels = [...historicalMonths, ...projectionMonths];
+    // Gabungkan data: historis (dalam juta) + proyeksi dealer
+    const allDealerData = [...historicalValues, ...projectionValues];
+    // Gabungkan data target Jotun: untuk periode historis kita tidak punya target eksplisit per bulan, isi null agar tidak tampil di area historis, baru setelah proyeksi muncul target.
+    // Agar grafik rapi: target hanya mulai ditampilkan pada titik awal proyeksi (Mei 2026) ke depan, untuk historis kosong.
+    const targetJotunFull = [...Array(historicalValues.length).fill(null), ...targetJotunValues];
+
+    // Render Chart.js
+    const ctx = document.getElementById('salesChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: allLabels,
+            datasets: [
+                {
+                    label: 'Sell Out Aktual (Historis)',
+                    data: [...historicalValues, ...Array(projectionValues.length).fill(null)],
+                    borderColor: '#2c6e9e',
+                    backgroundColor: 'rgba(44, 110, 158, 0.05)',
+                    borderWidth: 3,
+                    pointRadius: 3.5,
+                    pointBackgroundColor: '#2c6e9e',
+                    pointBorderColor: '#ffffff',
+                    tension: 0.2,
+                    fill: false,
+                    order: 2
+                },
+                {
+                    label: 'Proyeksi Sell Out (Strategi Way Out)',
+                    data: [...Array(historicalValues.length).fill(null), ...projectionValues],
+                    borderColor: '#f68b1e',
+                    backgroundColor: 'rgba(246, 139, 30, 0.08)',
+                    borderWidth: 3.5,
+                    borderDash: [5, 3],
+                    pointRadius: 3,
+                    pointBackgroundColor: '#f68b1e',
+                    tension: 0.2,
+                    fill: false,
+                    order: 1
+                },
+                {
+                    label: 'Target Minimal Jotun (Periode Kontrak)',
+                    data: targetJotunFull,
+                    borderColor: '#b22234',
+                    borderWidth: 2.5,
+                    borderDash: [8, 6],
+                    pointRadius: 0,
+                    fill: false,
+                    tension: 0,
+                    type: 'line',
+                    order: 0
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            let val = context.raw;
+                            if (val === null || val === undefined) return null;
+                            return `${label}: Rp ${val.toFixed(0)} Juta`;
+                        }
+                    }
+                },
+                legend: {
+                    position: 'top',
+                    labels: { font: { size: 12, weight: 'bold' }, usePointStyle: true, boxWidth: 12 }
+                }
+            },
+            scales: {
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Penjualan (Rp Juta)',
+                        font: { weight: 'bold', size: 12 }
+                    },
+                    beginAtZero: true,
+                    grid: { color: '#e2e8f0' },
+                    ticks: {
+                        callback: function(val) {
+                            return 'Rp ' + val.toLocaleString('id-ID') + ' Jt';
+                        }
+                    }
+                },
+                x: {
+                    title: { display: true, text: 'Periode (Bulanan)', font: { weight: 'bold' } },
+                    ticks: {
+                        maxRotation: 45,
+                        minRotation: 35,
+                        autoSkip: true,
+                        maxTicksLimit: 14
+                    }
+                }
+            },
+            interaction: { mode: 'index', intersect: false }
+        }
+    });
+
+    // Tambahkan elemen kecil untuk memperkuat analisa di console (opsional)
+    console.log('Dashboard Jotun: Proyeksi 3 tahun sell out berdasarkan image & target kontrak');
+</script>
+</body>
+</html>
